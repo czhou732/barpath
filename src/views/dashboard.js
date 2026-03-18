@@ -1,5 +1,8 @@
 // Barpath — Dashboard View
 import { db, getPastWorkouts, getSessionVolume, getAllTemplates, startWorkout, getWorkoutExercises, getSets } from '../db.js';
+import { getReadinessData, readinessLabel, readinessColor } from '../health-sync.js';
+import { recommend, BADGE_STYLES } from '../engines/recommendation-engine.js';
+import { renderMuscleHeatmap } from '../components/muscle-heatmap.js';
 
 export async function renderDashboard(container, activeWorkout) {
   const workouts = await getPastWorkouts(30);
@@ -27,18 +30,14 @@ export async function renderDashboard(container, activeWorkout) {
     }
   }
 
-  // Readiness score (placeholder without HealthKit — uses rest days logic)
-  const lastWorkoutDate = workouts[0] ? new Date(workouts[0].date) : null;
-  const hoursSinceLastWorkout = lastWorkoutDate ? (now - lastWorkoutDate) / 3600000 : 72;
-  const readiness = Math.min(100, Math.round(
-    hoursSinceLastWorkout < 12 ? 40 :
-    hoursSinceLastWorkout < 24 ? 55 :
-    hoursSinceLastWorkout < 48 ? 80 :
-    hoursSinceLastWorkout < 72 ? 95 : 100
-  ));
+  // Real readiness from health data
+  const healthData = await getReadinessData();
+  const readiness = healthData.readinessScore;
+  const rColor = readinessColor(readiness);
 
-  const readinessColor = readiness >= 70 ? 'var(--bp-green)' :
-    readiness >= 45 ? 'var(--bp-amber)' : 'var(--bp-red)';
+  // Get recommendations
+  let recommendations = [];
+  try { recommendations = await recommend(readiness); } catch (e) { /* silent */ }
 
   const circumference = 2 * Math.PI * 62;
   const offset = circumference * (1 - readiness / 100);
@@ -62,17 +61,18 @@ export async function renderDashboard(container, activeWorkout) {
       <!-- Readiness Ring -->
       <div class="card text-center" style="padding: var(--sp-xxl);">
         <div class="readiness-ring">
-          <div class="warm-glow" style="width: 140px; height: 140px; background: ${readinessColor}; top: 0; left: 0;"></div>
+          <div class="warm-glow" style="width: 140px; height: 140px; background: ${rColor}; top: 0; left: 0;"></div>
           <svg viewBox="0 0 140 140">
             <circle class="ring-bg" cx="70" cy="70" r="62" fill="none" stroke-width="8"/>
-            <circle class="ring-fill" cx="70" cy="70" r="62" fill="none" stroke="${readinessColor}" stroke-width="8"
+            <circle class="ring-fill" cx="70" cy="70" r="62" fill="none" stroke="${rColor}" stroke-width="8"
               stroke-dasharray="${circumference}" stroke-dashoffset="${offset}"/>
           </svg>
           <div class="readiness-value">
-            <span class="t-hero" style="color: ${readinessColor}">${readiness}</span>
+            <span class="t-hero" style="color: ${rColor}">${readiness}</span>
             <span class="t-label">READINESS</span>
           </div>
         </div>
+        <p class="t-caption mt-md" style="color: ${rColor}">${readinessLabel(readiness)}</p>
       </div>
 
       <!-- Week Stats -->
@@ -91,16 +91,31 @@ export async function renderDashboard(container, activeWorkout) {
         </div>
       </div>
 
-      <!-- Quick Start -->
+      <!-- MPS Heatmap -->
+      <div id="dash-heatmap"></div>
+
+      <!-- Quick Start w/ Recommendations -->
       ${!activeWorkout ? `
         <div>
-          <div class="t-label mb-md">QUICK START</div>
-          ${templates.map(t => `
-            <div class="template-card" data-template-id="${t.id}">
-              <div class="t-card">${t.name}</div>
-              <div class="t-caption text-muted">${t.exerciseEntries?.length || 0} exercises · ${t.exerciseEntries?.reduce((a, e) => a + e.sets, 0) || 0} sets</div>
-            </div>
-          `).join('')}
+          <div class="t-label mb-md">RECOMMENDED</div>
+          ${recommendations.map(r => {
+            const badge = BADGE_STYLES[r.badge];
+            return `
+              <div class="template-card" data-template-id="${r.template.id}">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <div class="t-card">${r.template.name}</div>
+                    <div class="t-caption text-muted">${r.template.exerciseEntries?.length || 0} exercises · ${r.template.exerciseEntries?.reduce((a, e) => a + e.sets, 0) || 0} sets</div>
+                  </div>
+                  <div class="text-right">
+                    <span class="rec-badge" style="color: ${badge.color}; background: ${badge.bg}">${badge.label}</span>
+                    <div class="t-data-sm" style="font-size: 11px; color: var(--bp-muted)">${Math.round(r.score)}</div>
+                  </div>
+                </div>
+                <div class="rec-reasoning">${r.reasoning}</div>
+              </div>
+            `;
+          }).join('')}
           <button class="btn btn-secondary btn-full mt-md" id="empty-workout">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14m-7-7h14"/></svg>
             Empty Workout
@@ -129,6 +144,12 @@ export async function renderDashboard(container, activeWorkout) {
       ` : ''}
     </div>
   `;
+
+  // Render heatmap
+  const heatmapEl = document.getElementById('dash-heatmap');
+  if (heatmapEl) {
+    try { await renderMuscleHeatmap(heatmapEl); } catch (e) { console.warn('Heatmap error:', e); }
+  }
 
   // Event handlers
   if (activeWorkout) {

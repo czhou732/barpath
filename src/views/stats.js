@@ -1,6 +1,8 @@
 // Barpath — Stats View
 import { getPastWorkouts, getWorkoutExercises, getSets, getExercises } from '../db.js';
 import { getUnit } from '../main.js';
+import { dotsScore, lbToKg, volumeLandmarks } from '../engines/neuroscience-engine.js';
+import { getCachedHealth } from '../health-sync.js';
 
 export async function renderStats(container) {
   const workouts = await getPastWorkouts(100);
@@ -23,13 +25,27 @@ export async function renderStats(container) {
     }
   }
 
-  // Sort PRs by weight descending
   const prList = Object.entries(prs)
     .map(([exId, data]) => {
       const ex = exercises.find(e => e.id === exId);
       return { id: exId, name: ex?.nameEN || exId, ...data };
     })
     .sort((a, b) => b.weight - a.weight);
+
+  // DOTS Score
+  const health = await getCachedHealth();
+  const bwKg = health.bodyMassKg || 0;
+  const squat = prs['squat']?.weight || 0;
+  const bench = prs['bench_press']?.weight || 0;
+  const dead = prs['deadlift']?.weight || 0;
+  const sKg = unit === 'lb' ? lbToKg(squat) : squat;
+  const bKg = unit === 'lb' ? lbToKg(bench) : bench;
+  const dKg = unit === 'lb' ? lbToKg(dead) : dead;
+  const dots = dotsScore(bwKg, sKg, bKg, dKg);
+
+  // Volume landmarks
+  let landmarks = [];
+  try { landmarks = await volumeLandmarks(); } catch (e) { /* silent */ }
 
   // Volume over time (last 20 workouts)
   const volumeData = [];
@@ -51,6 +67,18 @@ export async function renderStats(container) {
     return a;
   }, 0) / (totalWorkouts || 1);
 
+  const dotsColor = dots.classification === 'elite' ? 'var(--bp-green)' :
+    dots.classification === 'advanced' ? 'var(--bp-green)' :
+    dots.classification === 'intermediate' ? 'var(--bp-amber)' : 'var(--bp-muted)';
+
+  function volZoneColor(zone) {
+    if (zone === 'hypertrophy') return 'var(--bp-green)';
+    if (zone === 'maintenance') return 'var(--bp-amber)';
+    if (zone === 'overreaching') return 'var(--bp-amber)';
+    if (zone === 'exceededMRV') return 'var(--bp-red)';
+    return 'var(--bp-muted)';
+  }
+
   container.innerHTML = `
     <div class="flex-col gap-xxl">
       <h1 class="t-screen" style="margin-top: var(--sp-sm)">Stats</h1>
@@ -70,6 +98,59 @@ export async function renderStats(container) {
           <div class="stat-label">Avg Min</div>
         </div>
       </div>
+
+      <!-- DOTS Score -->
+      <div class="card">
+        <div class="flex justify-between items-center">
+          <div>
+            <div class="t-card" style="font-size: 15px">DOTS Score</div>
+            <div class="t-caption text-muted">IPF Relative Strength</div>
+          </div>
+          <div class="text-right">
+            <span class="t-data-md" style="color: ${dotsColor}">${dots.score > 0 ? dots.score.toFixed(0) : '—'}</span>
+            <div style="font-size: 10px; text-transform: capitalize; color: ${dotsColor}">${dots.classification}</div>
+          </div>
+        </div>
+        ${dots.score > 0 ? `
+          <div class="flex gap-lg mt-md" style="justify-content: center">
+            <div class="text-center"><span class="t-data-sm">${squat}</span><br><span style="font-size: 8px; color: var(--bp-subtle)">SQ</span></div>
+            <div class="text-center"><span class="t-data-sm">${bench}</span><br><span style="font-size: 8px; color: var(--bp-subtle)">BP</span></div>
+            <div class="text-center"><span class="t-data-sm">${dead}</span><br><span style="font-size: 8px; color: var(--bp-subtle)">DL</span></div>
+            <div class="text-center"><span class="t-data-sm">${bwKg > 0 ? bwKg.toFixed(0) : '—'}</span><br><span style="font-size: 8px; color: var(--bp-subtle)">BW kg</span></div>
+          </div>
+        ` : '<p class="t-caption text-muted mt-md">Log SBD + sync bodyweight for DOTS</p>'}
+      </div>
+
+      <!-- Volume Landmarks -->
+      ${landmarks.length > 0 ? `
+        <div class="card">
+          <div class="t-label mb-md">WEEKLY VOLUME vs LANDMARKS</div>
+          ${landmarks.map(v => {
+            const maxVal = v.mrv * 1.2;
+            const fillPct = Math.min(100, (v.weeklySets / maxVal) * 100);
+            const mevPct = (v.mev / maxVal) * 100;
+            const mavPct = (v.mav / maxVal) * 100;
+            const mrvPct = (v.mrv / maxVal) * 100;
+            const fillColor = volZoneColor(v.zone);
+            return `
+              <div class="vol-landmark">
+                <span class="vol-muscle">${v.muscle.replace(/_/g, ' ')}</span>
+                <div class="vol-bar-track">
+                  <div class="vol-bar-fill" style="width: ${fillPct}%; background: ${fillColor}"></div>
+                  <div class="vol-marker" style="left: ${mevPct}%" title="MEV"></div>
+                  <div class="vol-marker" style="left: ${mavPct}%" title="MAV"></div>
+                  <div class="vol-marker" style="left: ${mrvPct}%" title="MRV"></div>
+                </div>
+                <span class="vol-sets">${v.weeklySets}</span>
+                <span class="vol-zone" style="color: ${fillColor}">${v.zone.replace(/([A-Z])/g, ' $1').trim()}</span>
+              </div>
+            `;
+          }).join('')}
+          <div class="flex gap-lg mt-md" style="font-size: 8px; color: var(--bp-subtle)">
+            <span>| = MEV / MAV / MRV markers</span>
+          </div>
+        </div>
+      ` : ''}
 
       <!-- Volume Chart -->
       ${volumeData.length > 1 ? `

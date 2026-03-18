@@ -14,6 +14,16 @@ db.version(1).stores({
   workoutTemplates: 'id, planId, planOrder',
 });
 
+db.version(2).stores({
+  exercises:        'id, nameEN, equipment',
+  workoutSessions:  '++id, date, templateId, isActive',
+  workoutExercises: '++id, sessionId, exerciseId, order',
+  workoutSets:      '++id, exerciseId, order',
+  trainingPlans:    'id, order',
+  workoutTemplates: 'id, planId, planOrder',
+  healthRecords:    'id',
+});
+
 // ── Helper Functions ──
 
 /** Get all exercises */

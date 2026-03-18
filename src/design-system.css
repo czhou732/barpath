@@ -476,3 +476,95 @@ body {
 .text-red { color: var(--bp-red); }
 .w-full { width: 100%; }
 .hidden { display: none !important; }
+.text-right { text-align: right; }
+
+/* ══ Recovery Component Bars ══ */
+.component-bars { display: flex; flex-direction: column; gap: 8px; }
+.component-bar { display: flex; align-items: center; gap: 8px; }
+.comp-icon { font-size: 12px; width: 16px; text-align: center; }
+.comp-label { font: 400 12px var(--font-sans); color: var(--bp-text); width: 70px; }
+.comp-track { flex: 1; height: 6px; background: var(--bp-surface-alt); border-radius: 3px; overflow: hidden; }
+.comp-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.comp-score { font: 500 13px var(--font-mono); color: var(--bp-text); width: 24px; text-align: right; }
+.comp-weight { font-size: 9px; color: var(--bp-subtle); width: 24px; }
+
+/* ══ ANS Gauge ══ */
+.ans-gauge { position: relative; }
+.ans-track {
+  height: 8px; border-radius: 4px; position: relative;
+  background: linear-gradient(to right, var(--bp-green), var(--bp-amber), var(--bp-red));
+}
+.ans-marker {
+  position: absolute; top: 50%; transform: translate(-50%, -50%);
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 3px solid white;
+}
+
+/* ══ CNS Gauge ══ */
+.cns-gauge { position: relative; }
+.cns-track { height: 10px; background: var(--bp-surface-alt); border-radius: 5px; overflow: hidden; }
+.cns-fill {
+  height: 100%; border-radius: 5px;
+  background: linear-gradient(to right, var(--bp-green), var(--bp-amber), var(--bp-red));
+  transition: width 0.8s ease;
+}
+
+/* ══ Sleep Stages Bar ══ */
+.sleep-bar { display: flex; height: 14px; border-radius: 4px; overflow: hidden; gap: 1px; }
+.sleep-seg { height: 100%; }
+.sleep-deep { background: hsl(252, 50%, 50%); }
+.sleep-rem { background: hsl(180, 40%, 55%); }
+.sleep-core { background: rgba(148, 148, 148, 0.4); }
+.sleep-awake { background: rgba(206, 161, 75, 0.4); }
+
+.sleep-legend { display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--bp-muted); }
+.sleep-deep-dot { background: hsl(252, 50%, 50%); }
+.sleep-rem-dot { background: hsl(180, 40%, 55%); }
+.sleep-core-dot { background: rgba(148, 148, 148, 0.5); }
+.sleep-awake-dot { background: rgba(206, 161, 75, 0.5); }
+
+.legend-dot {
+  display: inline-block; width: 6px; height: 6px; border-radius: 50%;
+}
+
+/* ══ Muscle Heatmap ══ */
+.heatmap-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;
+}
+.heatmap-cell {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 10px 4px; border-radius: 8px;
+}
+.heatmap-icon { font-size: 20px; }
+.heatmap-label { font: 500 10px var(--font-sans); color: var(--bp-text); }
+.heatmap-phase { font: 700 7px var(--font-sans); text-transform: uppercase; letter-spacing: 0.5px; }
+.heatmap-bar-bg { width: 80%; height: 3px; background: var(--bp-surface-alt); border-radius: 2px; overflow: hidden; }
+.heatmap-bar-fill { height: 100%; border-radius: 2px; transition: width 0.5s; }
+.heatmap-hours { font: 500 8px var(--font-mono); color: var(--bp-subtle); }
+.heatmap-legend { display: flex; gap: 12px; font-size: 9px; color: var(--bp-subtle); }
+.heatmap-legend span { display: flex; align-items: center; gap: 4px; }
+
+/* ══ Recommendation Badges ══ */
+.rec-badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px;
+  font: 600 9px var(--font-sans); letter-spacing: 0.5px; text-transform: uppercase;
+}
+.rec-reasoning { font: 400 11px var(--font-sans); color: var(--bp-muted); margin-top: 2px; }
+
+/* ══ Progression Hint ══ */
+.progression-hint {
+  font: 400 11px var(--font-sans); color: var(--bp-muted);
+  padding: 4px 0;
+}
+.progression-hint.delta-up { color: var(--bp-green); }
+.progression-hint.delta-down { color: var(--bp-red); }
+
+/* ══ Volume Landmark Bar ══ */
+.vol-landmark { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.vol-muscle { font: 500 12px var(--font-sans); width: 80px; text-transform: capitalize; }
+.vol-bar-track { flex: 1; height: 8px; background: var(--bp-surface-alt); border-radius: 4px; position: relative; overflow: visible; }
+.vol-bar-fill { height: 100%; border-radius: 4px; transition: width 0.5s; }
+.vol-marker { position: absolute; top: -3px; width: 2px; height: 14px; background: var(--bp-text); opacity: 0.3; }
+.vol-sets { font: 500 12px var(--font-mono); width: 30px; text-align: right; }
+.vol-zone { font: 600 8px var(--font-sans); text-transform: uppercase; letter-spacing: 0.5px; width: 70px; text-align: right; }
+
