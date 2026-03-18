@@ -28,7 +28,7 @@ jobs:
           cache: npm
 
       - run: npm ci
-      - run: npx vite build --base /barpath/
+      - run: npx vite build
 
       - uses: actions/upload-pages-artifact@v3
         with:

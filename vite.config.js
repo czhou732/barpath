@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 
-export default defineConfig(({ mode }) => ({
-  base: mode === 'production' ? '/barpath/' : '/',
+export default defineConfig({
+  base: '/barpath/',
   root: '.',
   publicDir: 'public',
   server: {
