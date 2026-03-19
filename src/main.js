@@ -7,6 +7,7 @@ import { renderWorkout } from './views/workout.js';
 import { renderHistory } from './views/history.js';
 import { renderStats } from './views/stats.js';
 import { renderRecoveryView } from './views/recovery.js';
+import { renderLibrary } from './views/library.js';
 
 let currentView = 'dashboard';
 let unit = localStorage.getItem('bp-unit') || 'lb';
@@ -42,6 +43,9 @@ async function navigate(view) {
       break;
     case 'recovery':
       await renderRecoveryView(container);
+      break;
+    case 'library':
+      renderLibrary(container);
       break;
   }
 }

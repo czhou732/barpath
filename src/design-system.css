@@ -568,3 +568,54 @@ body {
 .vol-sets { font: 500 12px var(--font-mono); width: 30px; text-align: right; }
 .vol-zone { font: 600 8px var(--font-sans); text-transform: uppercase; letter-spacing: 0.5px; width: 70px; text-align: right; }
 
+/* ══ Chip Scroll (muscle filters) ══ */
+.chip-scroll {
+  display: flex; gap: 6px; overflow-x: auto; padding: 2px 0;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+.chip-scroll::-webkit-scrollbar { display: none; }
+.chip {
+  flex-shrink: 0; padding: 5px 12px; border-radius: 999px;
+  font: 500 12px var(--font-sans); border: 1px solid var(--bp-border);
+  background: var(--bp-surface); color: var(--bp-text); cursor: pointer;
+  transition: all 0.15s; white-space: nowrap;
+}
+.chip:active { transform: scale(0.96); }
+.chip-active {
+  background: var(--bp-accent); color: white; border-color: var(--bp-accent);
+}
+
+/* ══ Exercise Library ══ */
+.lib-list { display: flex; flex-direction: column; gap: 1px; }
+.lib-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; background: var(--bp-surface); border-radius: var(--radius-md);
+  cursor: pointer; transition: transform 0.12s;
+  border: 1px solid var(--bp-border);
+}
+.lib-item:active { transform: scale(0.98); }
+.lib-item + .lib-item { margin-top: 6px; }
+.lib-item-left { flex: 1; min-width: 0; }
+.lib-name { font: 500 14px var(--font-sans); color: var(--bp-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lib-sub { font: 400 11px var(--font-sans); color: var(--bp-subtle); margin-top: 1px; }
+.lib-item-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; margin-left: 12px; }
+.lib-equip { display: flex; align-items: center; gap: 4px; font: 400 10px var(--font-sans); color: var(--bp-muted); text-transform: capitalize; }
+.lib-reps { font: 500 9px var(--font-mono); color: var(--bp-subtle); }
+
+/* ══ Info Pill (exercise detail) ══ */
+.info-pill {
+  flex-shrink: 0; display: inline-flex; align-items: center; gap: 4px;
+  padding: 5px 10px; border-radius: 999px;
+  font: 400 11px var(--font-sans); color: var(--bp-text);
+  background: var(--bp-surface); border: 1px solid var(--bp-border);
+  white-space: nowrap;
+}
+
+/* ══ Fix: Nav 6-tab sizing ══ */
+.nav-btn { padding: var(--sp-xs) var(--sp-sm); }
+.nav-btn span { font-size: 9px; }
+.nav-btn svg { width: 20px; height: 20px; }
+
+/* ══ Fix: Heatmap SVG icon sizing ══ */
+.heatmap-icon { font-size: 0; width: 24px; height: 24px; }
+.heatmap-icon svg { width: 24px; height: 24px; }

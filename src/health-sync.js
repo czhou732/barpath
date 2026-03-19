@@ -14,13 +14,17 @@ const HEALTH_API = localStorage.getItem('barpath_health_api') || 'http://localho
 // 0.40 × sleep + 0.25 × HR + 0.25 × HRV + 0.10 × activity
 
 export function computeReadiness(data) {
+  // If no health data synced at all, readiness = 0
+  const hasData = data.sleepHours > 0 || data.restingHR > 0 || data.hrv > 0 || data.steps > 0;
+  if (!hasData) return 0;
+
   const sleepScore = Math.min(100, (data.sleepHours / 8.0) * 100);
   const hrScore = data.restingHR > 0
     ? Math.max(0, Math.min(100, ((80 - data.restingHR) / 30) * 100))
-    : 50;
+    : 0;
   const hrvScore = data.hrv > 0
     ? Math.max(0, Math.min(100, ((data.hrv - 20) / 60) * 100))
-    : 50;
+    : 0;
   const activityScore = Math.min(100, (data.steps / 8000) * 100);
 
   return Math.round(0.40 * sleepScore + 0.25 * hrScore + 0.25 * hrvScore + 0.10 * activityScore);
